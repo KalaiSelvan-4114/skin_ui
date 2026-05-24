@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { validateImage } from '../utils/imageValidation';
+import { useLanguage } from '../context/LanguageContext';
 
 function ImageInputSection({ onImageSelected, disabled }) {
+  const { t } = useLanguage();
   const fileRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -15,7 +17,6 @@ function ImageInputSection({ onImageSelected, disabled }) {
   useEffect(() => {
     return () => {
       // Cleanup: stop camera when component unmounts
-      console.log('Cleaning up camera...');
       stopCamera();
     };
   }, []);
@@ -23,14 +24,14 @@ function ImageInputSection({ onImageSelected, disabled }) {
   const handleFile = async (file) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setError('Please select an image file.');
+      setError(t('pleaseSelectImageFile'));
       return;
     }
     setError('');
     setValidating(true);
     
     try {
-      const validationResult = await validateImage(file);
+      const validationResult = await validateImage(file, t);
       setValidation(validationResult);
       
       const localUrl = URL.createObjectURL(file);
@@ -42,7 +43,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
       } else {
         // Show validation errors prominently
         const errorMessages = validationResult.errors.map(e => e.message).join(' | ');
-        setError(`❌ Validation Failed: ${errorMessages || 'Image does not meet requirements'}`);
+        setError(`${t('validationFailedPrefix')} ${errorMessages || t('imageDoesNotMeetRequirements')}`);
         
         // Auto-clear invalid image after 4 seconds so user can read the error
         setTimeout(() => {
@@ -51,7 +52,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
         }, 4000);
       }
     } catch (err) {
-      setError('Failed to validate image: ' + err.message);
+      setError(`${t('failedToValidateImage')}: ${err.message}`);
       setValidation(null);
     } finally {
       setValidating(false);
@@ -80,7 +81,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
       
       // Check if browser supports camera
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported in this browser');
+        throw new Error(t('cameraNotSupported'));
       }
       
       // First set streaming to true to render the video element
@@ -107,7 +108,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
         console.error('Video ref not available after stream acquired');
         setStreaming(false);
         setCameraLoading(false);
-        setError('❌ Camera initialization failed: Video element not found. Please refresh and try again.');
+        setError(`${t('cameraInitializationFailed')}: ${t('videoElementNotFound')}`);
         return;
       }
       
@@ -129,7 +130,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
       }
       
       if (!ready) {
-        throw new Error('Video stream failed to initialize - timeout');
+        throw new Error(t('cameraStreamInitializationFailed'));
       }
       
       // Now try to play
@@ -151,25 +152,24 @@ function ImageInputSection({ onImageSelected, disabled }) {
       console.log('Camera initialized successfully');
       
     } catch (e) {
-      console.error('Camera error details:', e);
       setCameraLoading(false);
       setStreaming(false);
       
-      let errorMsg = '❌ Camera Failed: ';
+      let errorMsg = `${t('cameraFailedPrefix')}: `;
       if (e.name === 'NotAllowedError') {
-        errorMsg += 'Camera permission denied. Please allow camera access in browser settings.';
+        errorMsg += t('cameraPermissionDenied');
       } else if (e.name === 'NotFoundError') {
-        errorMsg += 'No camera device found on this device.';
+        errorMsg += t('noCameraDeviceFound');
       } else if (e.name === 'NotReadableError') {
-        errorMsg += 'Camera is already in use. Close other applications using the camera.';
+        errorMsg += t('cameraAlreadyInUse');
       } else if (e.name === 'TypeError') {
-        errorMsg += 'Camera not available or not properly configured.';
+        errorMsg += t('cameraNotConfigured');
       } else if (e.message === 'Camera not supported in this browser') {
-        errorMsg += 'Your browser does not support camera access. Try Chrome, Firefox, or Edge.';
+        errorMsg += t('cameraNotSupportedBrowser');
       } else if (e.message.includes('timeout') || e.message.includes('initialize')) {
-        errorMsg += 'Camera stream initialization failed. Please refresh the page and try again.';
+        errorMsg += t('cameraStreamInitializationFailedHelp');
       } else {
-        errorMsg += e.message || 'Unknown error occurred.';
+        errorMsg += e.message || t('unknownCameraError');
       }
       
       setError(errorMsg);
@@ -196,7 +196,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
 
   const capture = async () => {
     if (!videoRef.current || !canvasRef.current) {
-      setError('Camera reference error. Please refresh and try again.');
+      setError(t('cameraReferenceError'));
       return;
     }
     
@@ -212,7 +212,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
       }
       
       if (video.videoWidth === 0 || video.videoHeight === 0) {
-        setError('Camera stream not ready. Please wait and try again.');
+        setError(t('cameraStreamNotReady'));
         return;
       }
       
@@ -226,7 +226,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          setError('Failed to capture image. Please try again.');
+          setError(t('failedToCaptureImage'));
           return;
         }
         console.log('Image captured successfully');
@@ -247,8 +247,8 @@ function ImageInputSection({ onImageSelected, disabled }) {
           1
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-gray-800">Upload or Capture</h3>
-          <p className="text-sm text-gray-600 mt-1">Choose an image to analyze</p>
+          <h3 className="text-2xl font-bold text-gray-800">{t('uploadOrCapture')}</h3>
+          <p className="text-sm text-gray-600 mt-1">{t('uploadOrCaptureSubtitle')}</p>
         </div>
       </div>
 
@@ -263,10 +263,10 @@ function ImageInputSection({ onImageSelected, disabled }) {
           >
             <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">📸</div>
             <p className="text-gray-700 font-semibold text-lg mb-2">
-              Drop your skin image here
+              {t('dropYourSkinImageHere')}
             </p>
             <p className="text-gray-500 text-sm mb-6">
-              or use one of the buttons below
+              {t('useOneOfButtonsBelow')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
@@ -276,7 +276,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
                 className="group/btn relative px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 <span className="text-xl">📁</span>
-                Choose Image
+                {t('chooseFile')}
               </button>
               <button
                 type="button"
@@ -287,12 +287,12 @@ function ImageInputSection({ onImageSelected, disabled }) {
                 {cameraLoading ? (
                   <>
                     <span className="text-xl animate-spin">⚙️</span>
-                    Starting Camera...
+                    {t('startingCamera')}
                   </>
                 ) : (
                   <>
                     <span className="text-xl">📷</span>
-                    Open Camera
+                    {t('takePhoto')}
                   </>
                 )}
               </button>
@@ -335,7 +335,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
             {!videoRef.current?.srcObject && (
               <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 border border-blue-300 rounded-xl">
                 <div className="animate-spin text-2xl">⚙️</div>
-                <p className="text-sm text-blue-700 font-semibold">Initializing camera...</p>
+                <p className="text-sm text-blue-700 font-semibold">{t('initializingCamera')}</p>
               </div>
             )}
             
@@ -344,13 +344,13 @@ function ImageInputSection({ onImageSelected, disabled }) {
                 onClick={capture} 
                 className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
-                ✓ Capture Photo
+                ✓ {t('capture')}
               </button>
               <button 
                 onClick={() => stopCamera()}
                 className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold hover:from-gray-400 hover:to-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
-                ✕ Cancel
+                ✕ {t('cancel')}
               </button>
             </div>
           </div>
@@ -362,7 +362,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
             {validating && (
               <div className="mb-4 p-4 bg-blue-50 border border-blue-300 rounded-xl flex items-center gap-3">
                 <div className="animate-spin text-2xl">🔄</div>
-                <p className="text-sm text-blue-700 font-semibold">Validating image quality...</p>
+                <p className="text-sm text-blue-700 font-semibold">{t('validatingImageQuality')}</p>
               </div>
             )}
             
@@ -383,7 +383,7 @@ function ImageInputSection({ onImageSelected, disabled }) {
                   setError('');
                 }}
                 className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 font-bold text-xl border-2 border-white"
-                title="Remove image"
+                title={t('removeImage')}
               >
                 ✕
               </button>
@@ -396,9 +396,9 @@ function ImageInputSection({ onImageSelected, disabled }) {
                       ✕
                     </div>
                     <div className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-2xl drop-shadow-lg">
-                      INVALID IMAGE
+                      {t('imageRejected')}
                     </div>
-                    <p className="text-white font-bold mt-2 drop-shadow-lg text-sm">Please upload a valid image</p>
+                    <p className="text-white font-bold mt-2 drop-shadow-lg text-sm">{t('pleaseUploadValidImage')}</p>
                   </div>
                 </div>
               )}
@@ -413,14 +413,14 @@ function ImageInputSection({ onImageSelected, disabled }) {
             {validation && validation.isValid && (
               <div className="mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border-2 border-emerald-400">
                 <span>✓</span>
-                <span>Image Ready for Analysis</span>
+                <span>{t('imageReadyForAnalysis')}</span>
               </div>
             )}
 
             {validation && !validation.isValid && (
               <div className="mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-bold border-2 border-red-500">
                 <span>✕</span>
-                <span>IMAGE REJECTED - Does not meet requirements</span>
+                <span>{t('validationFailed')}</span>
               </div>
             )}
           </div>

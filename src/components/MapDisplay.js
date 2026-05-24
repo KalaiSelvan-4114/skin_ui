@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useLanguage } from '../context/LanguageContext';
 
 // Import custom icons
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -16,6 +17,7 @@ L.Icon.Default.mergeOptions({
 });
 
 function MapDisplay({ userLocation, places, searchType }) {
+  const { t } = useLanguage();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
@@ -57,7 +59,7 @@ function MapDisplay({ userLocation, places, searchType }) {
     });
 
     L.marker([userLocation.latitude, userLocation.longitude], { icon: userIcon })
-      .bindPopup('<b>Your Location</b>')
+      .bindPopup(`<b>${t('yourLocation')}</b>`)
       .addTo(map);
 
     // Add place markers
@@ -95,7 +97,7 @@ function MapDisplay({ userLocation, places, searchType }) {
                 ? `${Math.round(place.distance * 1000)} m`
                 : `${place.distance.toFixed(1)} km`
             }</p>
-            <a href="${place.googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="
+              <a href="${place.googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="
               display: inline-block;
               margin-top: 8px;
               padding: 6px 12px;
@@ -107,7 +109,7 @@ function MapDisplay({ userLocation, places, searchType }) {
               font-weight: bold;
               cursor: pointer;
             ">
-              Get Directions →
+              ${t('getDirections')} →
             </a>
           </div>
         `;
@@ -134,7 +136,7 @@ function MapDisplay({ userLocation, places, searchType }) {
         mapInstanceRef.current = null;
       }
     };
-  }, [userLocation, places, searchType]);
+  }, [userLocation, places, searchType, t]);
 
   return (
     <div

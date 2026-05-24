@@ -1,12 +1,20 @@
 import React, { useEffect, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 function ResultsSection({ result, finalResult }) {
+  const { t } = useLanguage();
   if (!finalResult) return null;
 
   const base = result.prediction;
   const final = finalResult.final_prediction;
   const info = final?.disease_info || {};
   const canvasRef = useRef(null);
+  const diseaseKey = final?.class || '';
+  const displayName = t(diseaseKey) !== diseaseKey ? t(diseaseKey) : info.name;
+  const translatedDescriptionKey = `${diseaseKey}Desc`;
+  const translatedRecommendationKey = `${diseaseKey}Recommendation`;
+  const displayDescription = t(translatedDescriptionKey) !== translatedDescriptionKey ? t(translatedDescriptionKey) : info.description;
+  const displayRecommendation = t(translatedRecommendationKey) !== translatedRecommendationKey ? t(translatedRecommendationKey) : info.recommendation;
 
   const imgSrc = (b64) => (b64 ? `data:image/png;base64,${b64}` : null);
 
@@ -78,40 +86,40 @@ function ResultsSection({ result, finalResult }) {
           4
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-gray-800">Final Diagnosis</h3>
-          <p className="text-sm text-gray-600 mt-1">Based on image analysis and symptom assessment</p>
+          <h3 className="text-2xl font-bold text-gray-800">{t('finalDiagnosis')}</h3>
+          <p className="text-sm text-gray-600 mt-1">{t('basedOnImageAnalysisAndSymptoms')}</p>
         </div>
         <span className="ml-auto text-xs font-bold px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300">
-          STEP 4 of 5
+          {t('step4Of5')}
         </span>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <StatCard label="🎯 Final Diagnosis" value={final?.class || '-'} highlight={true} />
-        <StatCard label="📊 Confidence Score" value={`${(final?.confidence || 0).toFixed(2)}%`} />
-        <StatCard label="✓ Methodology" value="AI + Symptoms" />
+        <StatCard label={`🎯 ${t('finalDiagnosis')}`} value={final?.class || '-'} highlight={true} />
+        <StatCard label={`📊 ${t('confidenceScore')}`} value={`${(final?.confidence || 0).toFixed(2)}%`} />
+        <StatCard label={`✓ ${t('methodologyAiSymptoms')}`} value={t('methodologyAiSymptomsValue')} />
       </div>
 
       <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 border-2 border-emerald-200 mb-6">
         <div className="flex gap-4">
           <span className="text-4xl flex-shrink-0">🏥</span>
           <div>
-            <p className="font-bold text-emerald-900 text-xl mb-2">{info.name}</p>
-            <p className="text-gray-700 text-base leading-relaxed mb-3">{info.description}</p>
+            <p className="font-bold text-emerald-900 text-xl mb-2">{displayName}</p>
+            <p className="text-gray-700 text-base leading-relaxed mb-3">{displayDescription}</p>
             <p className="text-emerald-800 font-semibold">
-              📋 Recommendation: <span className="font-normal text-gray-800">{info.recommendation}</span>
+              📋 {t('recommendation')}: <span className="font-normal text-gray-800">{displayRecommendation}</span>
             </p>
           </div>
         </div>
       </div>
 
       <div>
-        <p className="font-bold text-gray-800 mb-4 text-lg">📸 Analysis Visualization</p>
+        <p className="font-bold text-gray-800 mb-4 text-lg">📸 {t('analysisVisualization')}</p>
         <div className="grid md:grid-cols-3 gap-4">
-          <ImageTile title="Original Image" src={imgSrc(result.images?.original)} />
+          <ImageTile title={t('originalImage')} src={imgSrc(result.images?.original)} />
           <div className="rounded-xl overflow-hidden border-2 border-red-400 bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-red-500">
             <div className="px-4 py-3 bg-gradient-to-r from-red-500 to-orange-500 border-b border-red-400">
-              <p className="font-semibold text-white">🎯 YOLO Detection (Red Boxes)</p>
+              <p className="font-semibold text-white">🎯 {t('yoloDetectionRedBoxes')}</p>
             </div>
             <canvas 
               ref={canvasRef}
@@ -119,13 +127,13 @@ function ResultsSection({ result, finalResult }) {
               style={{ maxHeight: '200px', objectFit: 'contain' }}
             />
           </div>
-          <ImageTile title="Lesion Segmentation" src={imgSrc(result.images?.segmented)} />
+          <ImageTile title={t('lesionSegmentation')} src={imgSrc(result.images?.segmented)} />
         </div>
       </div>
 
       {finalResult.answered_questions && finalResult.answered_questions.length > 0 && (
         <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
-          <h4 className="font-bold text-blue-900 mb-2">✓ Symptom Questions Analyzed</h4>
+          <h4 className="font-bold text-blue-900 mb-2">✓ {t('symptomQuestionsAnalyzed')}</h4>
           <p className="text-sm text-blue-800">
             {finalResult.answered_questions.length} symptom question(s) were reviewed to refine this diagnosis.
           </p>
@@ -144,7 +152,7 @@ function ImageTile({ title, src }) {
       {src ? (
         <img src={src} alt={title} className="w-full h-48 object-contain p-3" />
       ) : (
-        <div className="h-48 flex items-center justify-center text-sm text-gray-500 font-medium">Loading image...</div>
+        <div className="h-48 flex items-center justify-center text-sm text-gray-500 font-medium">{title ? title : '...'}</div>
       )}
     </div>
   );

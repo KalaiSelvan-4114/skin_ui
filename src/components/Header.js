@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
@@ -25,23 +28,26 @@ function Header() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">Derma Assist</h1>
-              <p className="text-xs text-gray-500">Powered by Deep Learning</p>
+              <h1 className="text-xl font-bold text-gray-800">{t('appName')}</h1>
+              <p className="text-xs text-gray-500">{t('poweredBy')}</p>
             </div>
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Home
-            </a>
-            <a href="#faq" className="text-gray-600 hover:text-blue-600 transition-colors">
-              FAQ
-            </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
-              About
-            </a>
-          </nav>
+          <div className="hidden md:flex items-center gap-4">
+            <nav className="flex items-center gap-6">
+              <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
+                {t('home')}
+              </a>
+              <a href="#faq" className="text-gray-600 hover:text-blue-600 transition-colors">
+                {t('faq')}
+              </a>
+              <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
+                {t('about')}
+              </a>
+            </nav>
+            <LanguageSelector />
+          </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-1">
@@ -65,14 +71,17 @@ function Header() {
           <nav className="md:hidden mt-4 pt-4 border-t border-gray-200 animate-fadeIn">
             <div className="flex flex-col gap-3">
               <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors py-2">
-                Home
+                {t('home')}
               </a>
               <a href="#faq" className="text-gray-600 hover:text-blue-600 transition-colors py-2">
-                FAQ
+                {t('faq')}
               </a>
               <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors py-2">
-                About
+                {t('about')}
               </a>
+              <div className="pt-2">
+                <LanguageSelector />
+              </div>
             </div>
           </nav>
         )}

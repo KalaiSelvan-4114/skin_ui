@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import MapDisplay from './MapDisplay';
+import { useLanguage } from '../context/LanguageContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://kalai4114-skin-server.hf.space';
 
@@ -18,6 +19,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const FindDoctorInline = ({ finalResult }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
@@ -33,7 +35,7 @@ const FindDoctorInline = ({ finalResult }) => {
 
   const findDoctors = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
+      setError(t('geolocationNotSupported'));
       return;
     }
 
@@ -95,7 +97,7 @@ const FindDoctorInline = ({ finalResult }) => {
       },
       (err) => {
         setLoading(false);
-        setError('Location access denied. Please enable location in your browser.');
+        setError(t('locationAccessDenied'));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
@@ -193,7 +195,7 @@ const FindDoctorInline = ({ finalResult }) => {
                   ? 'text-red-900'
                   : 'text-blue-900'
               }`}>
-                {searchType === 'hospital' ? '🏥 General Hospital Locator' : '👨‍⚕️ Dermatologist Finder'}
+                {searchType === 'hospital' ? `🏥 ${t('generalHospitalLocator')}` : `👨‍⚕️ ${t('dermatologistFinder')}`}
               </h4>
               <p className={`text-sm mt-1 ${
                 searchType === 'hospital'
@@ -201,13 +203,13 @@ const FindDoctorInline = ({ finalResult }) => {
                   : 'text-blue-700'
               }`}>
                 {searchType === 'hospital' 
-                  ? 'No dermatologists found - here are nearby hospitals for medical consultation'
-                  : 'Find specialized dermatologists near your location'}
+                  ? t('noDermatologistsFoundHospitalConsultation')
+                  : t('findSpecializedDermatologists')}
               </p>
             </div>
           </div>
           <span className="text-xs font-bold px-4 py-2 rounded-full bg-white/30 backdrop-blur-sm border border-white/50 text-gray-800">
-            STEP 5 of 5
+            {t('step5Of5')}
           </span>
         </div>
       </div>
@@ -218,8 +220,8 @@ const FindDoctorInline = ({ finalResult }) => {
           <div className="flex items-center justify-center gap-3">
             <div className="animate-spin text-4xl">⚙️</div>
             <div>
-              <p className="text-lg font-semibold text-gray-800">Locating medical facilities...</p>
-              <p className="text-sm text-gray-600">Please allow geolocation access</p>
+              <p className="text-lg font-semibold text-gray-800">{t('locatingMedicalFacilities')}</p>
+              <p className="text-sm text-gray-600">{t('pleaseAllowGeolocationAccess')}</p>
             </div>
           </div>
         </div>
@@ -230,7 +232,7 @@ const FindDoctorInline = ({ finalResult }) => {
         <div className="px-6 py-6 bg-red-100 border-t border-red-200">
           <p className="text-sm text-red-800 font-semibold mb-3">⚠️ {error}</p>
           <button onClick={findDoctors} className="text-sm font-semibold text-blue-600 hover:text-blue-800 underline">
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
       )}
@@ -243,10 +245,10 @@ const FindDoctorInline = ({ finalResult }) => {
             <div className="bg-amber-100 border-l-4 border-amber-600 rounded-lg p-4">
               <p className="text-sm font-bold text-amber-900 flex items-center gap-2">
                 <span>⚠️</span>
-                No Dermatologists Available
+                {t('noDermatologistsAvailable')}
               </p>
               <p className="text-sm text-amber-800 mt-2">
-                Please visit a nearby general hospital for professional skin disease consultation and treatment.
+                {t('pleaseVisitNearbyHospital')}
               </p>
             </div>
           )}
@@ -261,7 +263,7 @@ const FindDoctorInline = ({ finalResult }) => {
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            Open in Google Maps
+              {t('openInGoogleMaps')}
           </a>
 
           {/* Results count */}
@@ -271,8 +273,8 @@ const FindDoctorInline = ({ finalResult }) => {
                 results.places_found > 0 ? 'text-green-700' : 'text-gray-700'
               }`}>
                 {results.places_found > 0 
-                  ? `✓ ${results.places_found} ${searchType === 'hospital' ? 'Hospital(s)' : 'Dermatologist(s)'} Found`
-                  : 'No results found nearby'}
+                    ? t('resultsFoundTemplate', { count: results.places_found, placeType: searchType === 'hospital' ? t('hospitalPlural') : t('dermatologistPlural') })
+                    : t('noResultsFoundNearby')}
               </span>
               {results.places_found > 0 && (
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border-2 ${
@@ -280,7 +282,7 @@ const FindDoctorInline = ({ finalResult }) => {
                     ? 'bg-green-100 text-green-700 border-green-300' 
                     : 'bg-amber-100 text-amber-700 border-amber-300'
                 }`}>
-                  {results.minimum_required_met ? '✓ Available' : 'Limited'}
+                  {results.minimum_required_met ? `✓ ${t('available')}` : t('limited')}
                 </span>
               )}
             </div>
@@ -291,7 +293,7 @@ const FindDoctorInline = ({ finalResult }) => {
             <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow-lg">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
                 <p className="font-bold text-gray-800 text-lg">
-                  📍 {searchType === 'hospital' ? 'Hospitals & Medical Centers' : 'Nearby Dermatologists'}
+                  📍 {searchType === 'hospital' ? t('hospitalsAndMedicalCenters') : t('nearbyDermatologists')}
                 </p>
               </div>
               <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
@@ -323,7 +325,7 @@ const FindDoctorInline = ({ finalResult }) => {
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                           </svg>
-                          Directions
+                          {t('directions')}
                         </a>
                       </div>
                     </div>
@@ -337,7 +339,7 @@ const FindDoctorInline = ({ finalResult }) => {
           {results.nearby_places && results.nearby_places.length > 0 && userLocation && (
             <div className="mt-6">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-100 to-gray-50 border-2 border-gray-200 rounded-t-xl">
-                <p className="font-bold text-gray-800 text-lg">🗺️ Map View</p>
+                <p className="font-bold text-gray-800 text-lg">🗺️ {t('mapView')}</p>
               </div>
               <div className="rounded-b-xl overflow-hidden border-2 border-t-0 border-gray-200 shadow-lg">
                 <MapDisplay
@@ -348,7 +350,7 @@ const FindDoctorInline = ({ finalResult }) => {
               </div>
               <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
                 <p className="text-sm text-emerald-800">
-                  <span className="font-bold">💡 Map Tip:</span> Click on markers to see details, then click "Get Directions" to navigate to the location
+                  <span className="font-bold">💡 {t('mapTipPrefix')}:</span> {t('mapTip')}
                 </p>
               </div>
             </div>
@@ -359,7 +361,7 @@ const FindDoctorInline = ({ finalResult }) => {
             <div className="bg-white rounded-xl p-4 border-2 border-blue-200 shadow-md">
               <p className="text-xs font-bold text-blue-900 mb-3 flex items-center gap-2">
                 <span>📋</span>
-                Tell Your Doctor
+                {t('tellYourDoctor')}
               </p>
               <ul className="space-y-2">
                 {(results.what_to_tell_doctor || []).slice(0, 3).map((tip, idx) => (
@@ -373,7 +375,7 @@ const FindDoctorInline = ({ finalResult }) => {
             <div className="bg-white rounded-xl p-4 border-2 border-red-200 shadow-md">
               <p className="text-xs font-bold text-red-900 mb-3 flex items-center gap-2">
                 <span>🚨</span>
-                Emergency Signs
+                {t('emergencySigns')}
               </p>
               <ul className="space-y-2">
                 {(results.emergency_signs || []).slice(0, 3).map((sign, idx) => (

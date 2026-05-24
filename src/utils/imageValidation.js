@@ -171,7 +171,7 @@ export const detectMotionBlur = (canvas, threshold = 5000) => {
 };
 
 // Comprehensive image validation
-export const validateImage = async (file) => {
+export const validateImage = async (file, t = (value) => value) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -211,7 +211,7 @@ export const validateImage = async (file) => {
         if (blurAnalysis.isBlurry) {
           validation.warnings.push({
             type: 'blur',
-            message: `Image appears blurry (score: ${blurAnalysis.blurScore}%). Please capture a clearer image.`,
+            message: t('imageAppearsBlurry', { score: blurAnalysis.blurScore }),
             severity: 'warning'
           });
         }
@@ -219,7 +219,7 @@ export const validateImage = async (file) => {
         if (!skinAnalysis.hasSkin) {
           validation.errors.push({
             type: 'no_skin',
-            message: `No skin detected in image (only ${skinAnalysis.skinPercentage}% skin tone found). Please provide an image showing skin clearly.`,
+            message: t('noSkinDetected', { percent: skinAnalysis.skinPercentage }),
             severity: 'error'
           });
           validation.isValid = false;
@@ -228,7 +228,7 @@ export const validateImage = async (file) => {
         if (motionAnalysis.isShaky) {
           validation.warnings.push({
             type: 'motion_blur',
-            message: `Image appears shaky or has motion blur. Please try again with a steadier capture.`,
+            message: t('imageAppearsShaky'),
             severity: 'warning'
           });
         }
@@ -236,7 +236,7 @@ export const validateImage = async (file) => {
         if (img.width < 300 || img.height < 300) {
           validation.warnings.push({
             type: 'low_resolution',
-            message: `Image resolution is low (${img.width}x${img.height}). For better results, please use a higher resolution image.`,
+            message: t('imageResolutionLow', { width: img.width, height: img.height }),
             severity: 'warning'
           });
         }
@@ -248,7 +248,7 @@ export const validateImage = async (file) => {
     };
 
     reader.onerror = () => {
-      reject(new Error('Failed to read image file'));
+      reject(new Error(t('failedToReadImageFile')));
     };
 
     reader.readAsDataURL(file);

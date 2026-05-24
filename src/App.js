@@ -8,10 +8,12 @@ import FindDoctorInline from './components/FindDoctorInline';
 import ImageInputSection from './components/ImageInputSection';
 import ResultsSection from './components/ResultsSection';
 import ChatbotAnalysis from './components/ChatbotAnalysis';
+import { useLanguage } from './context/LanguageContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://kalai4114-skin-server.hf.space';
 
 function App() {
+  const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageResult, setImageResult] = useState(null);
   const [finalResult, setFinalResult] = useState(null);
@@ -27,7 +29,7 @@ function App() {
 
   const analyzeImage = async () => {
     if (!selectedImage) {
-      setError('Please upload or capture an image first.');
+      setError(t('pleaseUploadImageFirst'));
       return;
     }
 
@@ -43,7 +45,7 @@ function App() {
       });
       setImageResult(res.data);
     } catch (e) {
-      const msg = e?.response?.data?.error || 'Image analysis failed.';
+      const msg = e?.response?.data?.error || t('imageAnalysisFailed');
       setError(msg);
     } finally {
       setLoading(false);
@@ -60,17 +62,17 @@ function App() {
           <div className="inline-block mb-4">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-400/30 backdrop-blur-sm">
               <span className="text-lg">🔬</span>
-              <span className="text-sm font-semibold text-blue-300">AI-Powered Detection</span>
+              <span className="text-sm font-semibold text-blue-300">{t('heroBadge')}</span>
             </span>
           </div>
           <h2 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
-            AI-Powered Skin Disease Detection
+            {t('heroTitle')}
           </h2>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-2">
-            Upload or capture a skin lesion image for instant AI analysis
+            {t('heroSubtitle')}
           </p>
           <p className="text-sm md:text-base text-gray-400 max-w-2xl mx-auto">
-            Our advanced system uses YOLO detection, EfficientNetB3 classification, and symptom Q&A to provide accurate preliminary diagnosis and connect you with dermatologists.
+            {t('heroDetail')}
           </p>
         </div>
 
@@ -88,12 +90,12 @@ function App() {
               {loading ? (
                 <>
                   <span className="inline-block animate-spin">⚙️</span>
-                  Analyzing...
+                  {t('analyzingBtn')}
                 </>
               ) : (
                 <>
                   <span>🚀</span>
-                  Analyze Image
+                  {t('analyzeImage')}
                 </>
               )}
             </span>
